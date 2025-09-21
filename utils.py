@@ -43,3 +43,36 @@ def check_game_over(board:np.ndarray) -> tuple[bool,int]:
         return True, None  # empate
     else:
         return False, None # el juego sigue 
+
+def count_n_in_a_row(board, player, n):
+    """
+    Cuenta cuántas secuencias de longitud n tiene 'player' en el tablero.
+    """
+    rows, cols = board.shape
+    count = 0
+
+    # Horizontal
+    for r in range(rows):
+        for c in range(cols - n + 1):
+            if np.all(board[r, c:c+n] == player):
+                count += 1
+
+    # Vertical
+    for r in range(rows - n + 1):
+        for c in range(cols):
+            if np.all(board[r:r+n, c] == player):
+                count += 1
+
+    # Diagonal positiva
+    for r in range(rows - n + 1):
+        for c in range(cols - n + 1):
+            if all(board[r+i, c+i] == player for i in range(n)):
+                count += 1
+
+    # Diagonal negativa
+    for r in range(n - 1, rows):
+        for c in range(cols - n + 1):
+            if all(board[r-i, c+i] == player for i in range(n)):
+                count += 1
+
+    return count

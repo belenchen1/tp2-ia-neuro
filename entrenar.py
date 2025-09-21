@@ -1,21 +1,22 @@
 import torch
 from principal import Connect4Environment, Connect4State, DeepQLearningAgent, TrainedAgent
-from agentes import Agent
+from agentes import Agent, DefenderAgent, RandomAgent
+from connect4 import Connect4
 import argparse
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def entrenar(episodes:int=500,
-             gamma:float=0.99, 
-             epsilon_start:float=1.0, 
-             epsilon_min:float=0.1, 
-             epsilon_decay:float=0.995,
-             alpha:float=0.001,
-             batch_size:int=64, 
-             memory_size:int=500,
-             target_update_every:int=100,
-             opponent:Agent=None,
-             verbose:bool=True):
+def entrenar(episodes:int=5000,
+            gamma:float=0.95, 
+            epsilon_start:float=1.0, 
+            epsilon_min:float=0.1, 
+            epsilon_decay:float=0.98,
+            alpha:float=0.001,
+            batch_size:int=64, 
+            memory_size:int=500,
+            target_update_every:int=100,
+            opponent:Agent=None,
+            verbose:bool=True):
 
     ''' Entrenar un Agente DQN en la cantidad de episodios y con los 
         parámetros indicados. 
@@ -42,7 +43,12 @@ def entrenar(episodes:int=500,
         target_update_every=target_update_every, 
         epsilon_decay=epsilon_decay
     )
-    
+    agent.epsilon = epsilon_start
+    agent.epsilon_min = epsilon_min
+
+    # Para guardar métricas
+    history = {"episodes": [], "loss": [], "epsilon": []}
+
     # Entrenamiento
     for episode in range(episodes):
         state:Connect4State = env.reset()
@@ -72,11 +78,19 @@ def entrenar(episodes:int=500,
     
         if (episode + 1) % 100 == 0:
             avg_loss = sum(episode_losses) / len(episode_losses) if episode_losses else 0
-            if verbose: print(f"Episodio {episode + 1} finalizado. Epsilon: {agent.epsilon:.4f} | Loss promedio: {avg_loss:.6f}", flush=True)
+            if verbose:
+                print(f"Episodio {episode + 1} | Epsilon: {agent.epsilon:.4f} | Loss promedio: {avg_loss:.6f}", flush=True)
+
+            # Guardamos métricas
+            history["episodes"].append(episode + 1)
+            history["loss"].append(avg_loss)
+            history["epsilon"].append(agent.epsilon)
 
     if verbose: print(flush=True)
     
     torch.save(agent.q_network.state_dict(), f"{model_name}.pth")
+
+    return model_name, history
 
 
 if __name__ == '__main__':
@@ -105,18 +119,21 @@ if __name__ == '__main__':
             n_actions=7,
             device=device
         )
-    else: 
-        agente_entrenado = None
+    else:
+        # ACA VA EL OPONENTE (si es contra si mismo, dejar en None)
+        # agente_entrenado = None
+        # agente_entrenado = RandomAgent("Random")
+        agente_entrenado = DefenderAgent("Defender")
 
     # Llamar a la función principal con los argumentos proporcionados
     entrenar(episodes=args.episodes, 
-             gamma=args.gamma, 
-             epsilon_start=args.epsilon_start, 
-             epsilon_min=args.epsilon_min, 
-             epsilon_decay=args.epsilon_decay,
-             alpha=args.alpha,
-             batch_size=args.batch_size, 
-             memory_size=args.memory_size,
-             target_update_every=args.target_update_every,
-             opponent=agente_entrenado,
-             verbose=args.verbose)
+            gamma=args.gamma, 
+            epsilon_start=args.epsilon_start, 
+            epsilon_min=args.epsilon_min, 
+            epsilon_decay=args.epsilon_decay,
+            alpha=args.alpha,
+            batch_size=args.batch_size, 
+            memory_size=args.memory_size,
+            target_update_every=args.target_update_every,
+            opponent=agente_entrenado,
+            verbose=args.verbose)

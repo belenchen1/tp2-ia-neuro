@@ -4,9 +4,12 @@ import utils
 import numpy as np
 
 class Agent(ABC):
+    ''' Clase abstracta para definir agentes que juegan Connect4. '''
     @abstractmethod
     def play(self, state, valid_actions):
-        '''Dado un estado y acciones válidas, retorna una acción.'''
+        '''Dado un estado y acciones válidas, retorna una acción.
+        - esto obliga a que cualquier subclase de Agent implemente play
+        '''
         pass
 
 class RandomAgent(Agent):
@@ -39,3 +42,5 @@ class DefenderAgent(Agent):
                 return col
         # Si el oponente no está por ganar, elegimos al azar.
         return choice(valid_actions)
+
+

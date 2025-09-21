@@ -2,7 +2,8 @@ from principal import Connect4State,Connect4Environment
 from agentes import Agent,RandomAgent
 
 class Connect4:
-    def __init__(self, rows:int=6, cols:int=7, agent1:Agent=None, agent2:Agent=None):
+    #Clase que simula un juego de Connect4 entre dos agentes.
+    def __init__(self, rows:int=6, cols:int=7, agent1:Agent=None, agent2:Agent=None): # type: ignore
         self.rows:int = rows
         self.cols:int = cols
         self.env:Connect4Environment = Connect4Environment(rows, cols)
